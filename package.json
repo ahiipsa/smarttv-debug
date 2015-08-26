@@ -2,6 +2,10 @@
   "name": "look1_tv_app_logger",
   "version": "0.0.1",
   "description": "smart tv debug toolkit",
+  "repository": {
+    "type": "git",
+    "url": "git@gitlab.rwvlab.ru:s.karasev/look1_tv_app_logger.git"
+  },
   "main": "logger.js",
   "dependencies": {
     "express": "^4.13.3",
