@@ -1,12 +1,15 @@
 {
-  "name": "look1_tv_app_logger",
+  "name": "smarttv-debug",
   "version": "0.0.1",
   "description": "smart tv debug toolkit",
   "repository": {
     "type": "git",
-    "url": "git@gitlab.rwvlab.ru:s.karasev/look1_tv_app_logger.git"
+    "url": "git@github.com:ahiipsa/smarttv-debug.git"
   },
   "main": "logger.js",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
   "dependencies": {
     "express": "^4.13.3",
     "minimist": "^1.2.0",
