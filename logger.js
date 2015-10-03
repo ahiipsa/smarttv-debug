@@ -3,7 +3,7 @@
 (function (window) {
     function Logger(options) {
         this.options = options;
-        this.options.prefix = options.prefix || options.name || '';
+        this.options.prefix = options.prefix || options.name || 'Logger';
         this.logContainer = null;
         this.socket = null;
         this.originLog = console.log;
@@ -20,7 +20,6 @@
     Logger.prototype.intercept = function () {
         var self = this;
         console.log = function () {
-            self.originLog.apply(console, arguments);
             self.log.apply(self, arguments);
         };
 
