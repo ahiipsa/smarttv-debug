@@ -6,6 +6,7 @@
         this.options.prefix = options.prefix || options.name || 'Logger';
         this.logContainer = null;
         this.socket = null;
+        this.socketio = options.socketio || undefined;
         this.originLog = console.log;
         this.originAlert = window.alert;
 
@@ -32,7 +33,9 @@
 
     Logger.prototype.initSocket = function () {
         var self = this;
-        if (typeof window.io === 'undefined'){
+
+        var io = window.io || self.options.socketio;
+        if (!io){
             console.warn('Logger: socket io undefined');
             return;
         }
