@@ -94,17 +94,51 @@
         this.logContainer.scrollTop = this.logContainer.scrollHeight;
     };
 
+    /**
+     * Serialize to string
+     * @param {*} value
+     * @returns {string}
+     */
+    Logger.prototype.serialize = function (value) {
+        if(typeof value === 'number'){
+            return value.toString();
+        }
+
+        if(typeof value === 'string') {
+            return value.toString();
+        }
+
+        if(typeof value === 'undefined'){
+            return 'undefined'
+        }
+
+        if(typeof value === 'boolean'){
+            return value.toString();
+        }
+
+        if(Array.isArray(value)){
+            return value.toString();
+        }
+
+        if(null === value){
+            return null;
+        }
+
+        if(typeof value === 'object'){
+            return JSON.stringify(value, null, 4);
+        }
+
+        if(typeof value == "function"){
+            return value.toString();
+        }
+    };
 
     Logger.prototype.log = function () {
         var message = '',
             values = [];
 
         for(var i = 0; i < arguments.length; i++){
-            var value = arguments[i];
-            if(typeof value === 'object'){
-                value = JSON.stringify(value, null, 4);
-            }
-            values.push(value);
+            values.push(this.serialize(arguments[i]));
         }
 
         message = this.options.prefix + ': ' + values.join(', ');
