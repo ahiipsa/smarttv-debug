@@ -14,7 +14,8 @@ var opt = minimist(process.argv.slice(2));
 
 var config = {
     host: 'http://localhost:3000',
-    sourceFile: __dirname + '/eval.js'
+    //sourceFile: __dirname + '/eval.js'
+    sourceFile: false
 };
 
 // set config
@@ -49,10 +50,12 @@ client.on('disconnect', function () {
     log('disconnect');
 });
 
-fs.watchFile(config.sourceFile, {persistent: false, interval: 200}, function () {
-    fs.readFile(config.sourceFile, {encoding: 'utf8'}, function (err, data) {
-        if (err) throw err;
-        log('dev:eval', data);
-        client.emit('dev:eval', data);
+if(config.sourceFile){
+    fs.watchFile(config.sourceFile, {persistent: false, interval: 200}, function () {
+        fs.readFile(config.sourceFile, {encoding: 'utf8'}, function (err, data) {
+            if (err) throw err;
+            log('dev:eval', data);
+            client.emit('dev:eval', data);
+        });
     });
-});
+}
