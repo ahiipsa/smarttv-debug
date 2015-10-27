@@ -1,6 +1,15 @@
 "use strict";
 
 (function (window) {
+    /**
+     *
+     * @param {Object}  options - Options object
+     * @param {string}  options.prefix - prefix for log message
+     * @param {string}  options.name - alias options.prefix
+     * @param {Object}  options.socketio - pointer for socketio
+     * @param {boolean} options.intercept - intercept console.log, window.alert
+     * @constructor
+     */
     function Logger(options) {
         this.options = options;
         this.options.prefix = options.prefix || options.name || 'Logger';
