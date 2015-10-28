@@ -150,7 +150,7 @@
             values.push(this.serialize(arguments[i]));
         }
 
-        message = this.options.prefix + ': ' + values.join(', ');
+        message = this.options.prefix + ': ' + values.join(' ');
 
         this.logOrigin(message);
         this.logDOM(message);
