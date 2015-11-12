@@ -1,114 +1,48 @@
 "use strict";
 
 (function (window) {
-    /**
-     *
-     * @param {Object}  options - Options object
-     * @param {string}  options.prefix - prefix for log message
-     * @param {string}  options.name - alias options.prefix
-     * @param {Object}  options.socketio - pointer for socketio
-     * @param {boolean} options.intercept - intercept console.log, window.alert
-     * @constructor
-     */
-    function Logger(options) {
-        this.options = options;
-        this.options.prefix = options.prefix || options.name || 'Logger';
-        this.logContainer = null;
-        this.socket = null;
-        this.socketio = options.socketio || undefined;
-        this.originLog = console.log;
-        this.originAlert = window.alert;
+    var socket;
+    var originLog   = console.log;
+    var originAlert = window.alert;
+    var _innerLogger;
+    var loggers = {};
 
-        this.initDOM();
-        this.initSocket();
 
-        if (this.options.intercept) {
-            this.intercept();
-        }
-    }
-
-    Logger.prototype.intercept = function () {
-        var self = this;
+    function intercept() {
         console.log = function () {
-            self.log.apply(self, arguments);
+            _innerLogger.log.apply(_innerLogger, arguments);
         };
 
         window.alert = function () {
-            self.originAlert.apply(window, arguments);
-            self.log.apply(self, arguments);
+            originAlert.apply(window, arguments);
+            _innerLogger.log.apply(_innerLogger, arguments);
         };
     };
 
 
-    Logger.prototype.initSocket = function () {
-        var self = this;
-
-        var io = window.io || self.options.socketio;
-        if (!io){
+    function initSocket () {
+        if (!socket){
             console.warn('Logger: socket io undefined');
             return;
         }
 
-        console.info('Logger: socket available');
-        this.socket = io(this.options.host);
-        this.socket.on('connect', function(){
-            this.log('socket connection success');
-        }.bind(this));
+        socket.on('connect', function(){
+            _innerLogger.log('socket connection success');
+        });
 
 
-        this.socket.on('dev:eval', function (data) {
-            self.log('eval event');
+        socket.on('dev:eval', function (data) {
+            _innerLogger.log('eval event');
             try{
                 eval(data);
             } catch (ex) {
-                self.log('Eval exception', ex);
+                _innerLogger.log('Eval exception', ex);
             }
         });
     };
 
 
-    Logger.prototype.initDOM = function() {
-        var container = document.getElementById(this.options.containerId);
-
-        if(!container){
-            console.warn('Logger: DOM container not found: ' + this.options.containerId );
-            return;
-        }
-
-        this.logContainer = container;
-    };
-
-
-    Logger.prototype.logOrigin = function () {
-        this.originLog.apply(console, arguments);
-    };
-
-
-    Logger.prototype.logSocket = function(message){
-        if(this.socket){
-            this.socket.emit('app:info', message);
-        }
-    };
-
-
-    Logger.prototype.logDOM = function (message) {
-        if(!this.logContainer){
-            return;
-        }
-
-        var el = document.createElement('div');
-        el.innerHTML = message;
-
-        this.logContainer.appendChild( el );
-        this.logContainer.scrollTop = this.logContainer.scrollHeight;
-    };
-
-    /**
-     * Serialize to string
-     * @param {*} value
-     * @returns {string}
-     */
-    Logger.prototype.serialize = function (value) {
+    function serialize (value) {
         if(typeof value === 'number'){
             return value.toString();
         }
@@ -133,29 +67,87 @@
             return null;
         }
 
-        if(typeof value === 'object'){
-            return JSON.stringify(value, null, 4);
-        }
-
-        if(typeof value == "function"){
+        if(typeof value === "function"){
             return value.toString();
         }
+
+        if(typeof value === 'object'){
+            return JSON.stringify(value, null, 0);
+        }
+    }
+
+
+    function Logger(name) {
+        this.options = {};
+        this.options.prefix = name;
+    }
+
+
+    Logger.prototype.logOrigin = function () {
+        originLog.apply(console, arguments);
     };
+
+
+    Logger.prototype.logSocket = function(message){
+        if(socket){
+            socket.emit('app:info', message);
+        }
+    };
+
 
     Logger.prototype.log = function () {
         var message = '',
             values = [];
 
         for(var i = 0; i < arguments.length; i++){
-            values.push(this.serialize(arguments[i]));
+            values.push(serialize(arguments[i]));
         }
 
-        message = this.options.prefix + ': ' + values.join(' ');
+        message = this.options.prefix + ': ' + values.join(', ');
 
         this.logOrigin(message);
-        this.logDOM(message);
         this.logSocket(message);
     };
 
-    window.Logger = Logger;
+
+    var getLogger = function (name) {
+        if(loggers[name]){
+            return loggers[name];
+        }
+
+        loggers[name] = new Logger(name);
+        var log = loggers[name];
+        return log;
+    }
+
+
+    window.logger = function(options){
+        if(typeof options === 'string' && !_innerLogger) {
+            throw new Error('need configurate logger');
+        }
+        // return logger by name
+        if(typeof options === 'string' && _innerLogger){
+            return getLogger(options);
+        }
+
+        // is initialized?
+        if(_innerLogger){
+            return _innerLogger;
+        }
+
+        // initialize
+        _innerLogger = getLogger('logger');
+
+        socket = options.socketio || undefined;
+
+        if(options.intercept == true){
+            intercept();
+        }
+
+        if(options.socket && options.socket == true){
+            initSocket();
+        }
+
+        return _innerLogger;
+    };
 })(window);

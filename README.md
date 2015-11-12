@@ -26,16 +26,20 @@ options:
 
 options:
 
-- `host`: адрес сервера
-- `containerID`: id дом элемента в который будет складываться лог
 - `intercept`: включить перехват вызовов console.log, window alert
 
 ```javascript
 
-var logger = new Logger({
-    host: 'http://localhost:3000',
-    containerID: 'position_name',
-    intercept: true
+var socket = io('http://localhost:3000');
+
+logger({
+    intercept: true,
+    socketio: socket
 });
+
+
+var debug = logger('app');
+
+debug('log');
 
 ```
